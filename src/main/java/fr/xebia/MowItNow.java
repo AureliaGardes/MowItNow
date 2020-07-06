@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.util.StringUtils;
 
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MowItNow {
 
-    public static final String LE_NOM_DU_FICHIER_DOIT_ETRE_PASSE_EN_PARAMETRE = "le nom du fichier doit être passé en paramètre.";
+    public static final String LE_NOM_DU_FICHIER_DOIT_ETRE_PASSE_EN_PARAMETRE = "Le nom du fichier doit être passé en paramètre.";
 
     public static final String FICHIER_VIDE = "Fichier vide.";
 
@@ -41,7 +40,7 @@ public class MowItNow {
 
     public static final String TAILLE_DE_LA_PELOUSE_INVALIDE_VALEUR_0 = "Taille de la pelouse invalide : {}";
 
-    public static final String ERREUR_DE_CONFIGURATION_DE_LA_PELOUSE_PROGRAMME_INTERROMPU = "Erreur de configuretion de la pelouse, programme interrompu.";
+    public static final String ERREUR_DE_CONFIGURATION_DE_LA_PELOUSE_PROGRAMME_INTERROMPU = "Erreur de configuration de la pelouse, programme interrompu.";
 
     public static final String ORIENTATION_DE_LA_TONDEUSE_NON_RECONNUE = "Orientation de la tondeuse non reconnue : {}";
 
@@ -52,6 +51,8 @@ public class MowItNow {
 
     public static final String ERREUR_INTERVENUE_DURANT_LE_DEPLACEMENT_DE_LA_TONDEUSE_PROGRAMME_INTERROMPU =
                     "Erreur intervenue durant le déplacement de la tondeuse, programme interrompu.";
+
+    public static final String PROGRAMME_TERMINE = "Programme terminé";
 
     private int maxX; //longueur max de la pelouse
 
@@ -67,29 +68,29 @@ public class MowItNow {
 
     private String nomFichier;
 
+    String result;
+
     public MowItNow(String nomFichier) {
         this.nomFichier = nomFichier;
     }
 
-    public void run() {
+    public String run() {
 
         if (StringUtils.isEmpty(nomFichier)) {
-            handleError(LE_NOM_DU_FICHIER_DOIT_ETRE_PASSE_EN_PARAMETRE, null);
-            return;
+            return handleError(LE_NOM_DU_FICHIER_DOIT_ETRE_PASSE_EN_PARAMETRE, null);
+
         }
 
         //lecture du fichier
         List<String> lines = initFile(nomFichier);
         if (lines.isEmpty()) {
-            handleError(ERREUR_DE_LECTURE_DU_FICHIER_PROGRAMME_INTERROMPU, null);
-            return;
+            return handleError(ERREUR_DE_LECTURE_DU_FICHIER_PROGRAMME_INTERROMPU, null);
         }
 
         //debut de la lecture du fichier d'entrée
         int index = 0;
         if (!configPelouse(lines, index)) {
-            handleError(ERREUR_DE_CONFIGURATION_DE_LA_PELOUSE_PROGRAMME_INTERROMPU, null);
-            return;
+            return handleError(ERREUR_DE_CONFIGURATION_DE_LA_PELOUSE_PROGRAMME_INTERROMPU, null);
         }
         // On a fini de se servir de la ligne
         index++;
@@ -101,8 +102,7 @@ public class MowItNow {
 
             //creation tondeuse (position)
             if (!setPositionTondeuse(directions, pos)) {
-                handleError(IMPOSSIBLE_DE_DETERMINER_LA_POSITION_DE_LA_TONDEUSE_PROGRAMME_INTERROMPU, null);
-                return;
+                return handleError(IMPOSSIBLE_DE_DETERMINER_LA_POSITION_DE_LA_TONDEUSE_PROGRAMME_INTERROMPU, null);
             }
 
             index++;
@@ -111,15 +111,15 @@ public class MowItNow {
 
             //execution des mouvements
             if (!tondre(lesMoves)) {
-                handleError(ERREUR_INTERVENUE_DURANT_LE_DEPLACEMENT_DE_LA_TONDEUSE_PROGRAMME_INTERROMPU, null);
-                return;
+                return handleError(ERREUR_INTERVENUE_DURANT_LE_DEPLACEMENT_DE_LA_TONDEUSE_PROGRAMME_INTERROMPU, null);
             }
             index++;
 
             //print dans le résultat de la position finale de la tondeuse
-            log.info("{} {} {}", xt, yt, directions.get(ot));
+            result = String.valueOf(xt) + ' ' + String.valueOf(yt) + ' ' + directions.get(ot);
+            log.info(result);
         }
-
+        return result;
     }
 
     private boolean tondre(String lesMoves) {
@@ -248,19 +248,20 @@ public class MowItNow {
         return lines;
     }
 
-    public File ouvertureFichier(String path) throws FileNotFoundException {
-        File file = new File("src\\main\\resources\\" + path);
+    public File ouvertureFichier(String nomFichier) throws FileNotFoundException {
+        File file = new File(nomFichier);
         if (!file.exists()) {
             throw new FileNotFoundException();
         }
         return file;
     }
 
-    public void handleError(String error, String data) {
-        if (data.isBlank()) {
+    public String handleError(String error, String data) {
+        if (data != null && !data.isEmpty()) {
             log.error(error, data);
-            return;
+            return error + data;
         }
         log.error(error);
+        return error;
     }
 }
