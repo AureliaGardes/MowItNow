@@ -31,10 +31,10 @@ Chaque tondeuse se déplace de façon séquentielle, ce qui signifie que la seco
 bouge que lorsque la première a exécuté intégralement sa série d'instructions.
 Lorsqu'une tondeuse achève une série d'instruction, elle communique sa position et son
 orientation.
+
 OBJECTIF
 Concevoir et écrire un programme dans un des langages suivants : Java, Scala, Kotlin,
-JavaScript, Typescript, Python, Go (Si vous souhaitez utiliser un autre langage, bien le valider
-avant auprès de votre chargé de recrutement)
+JavaScript, Typescript, Python, Go 
 Ce programme devra implémenter la spécification ci-dessus et passer le test ci-après.
 
 TEST
